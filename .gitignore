@@ -1,0 +1,4 @@
+# Ignore local music asset so it is not committed
+assets/imperial_march.mp3
+assets/imperial_march.ogg
+
