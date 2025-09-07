@@ -371,11 +371,20 @@ class Player {
   }
   update(dt) {
     const g = this.game;
-    let dir = 0;
-    if (g.input.down('ArrowLeft') || g.input.down('KeyA')) dir -= 1;
-    if (g.input.down('ArrowRight') || g.input.down('KeyD')) dir += 1;
-    this.x += dir * this.speed * dt;
-    this.x = Math.max(20, Math.min(g.canvas.width - this.w - 20, this.x));
+    // 2D‑Bewegung: Pfeile oder WASD in alle Richtungen
+    let dx = 0, dy = 0;
+    if (g.input.down('ArrowLeft')  || g.input.down('KeyA')) dx -= 1;
+    if (g.input.down('ArrowRight') || g.input.down('KeyD')) dx += 1;
+    if (g.input.down('ArrowUp')    || g.input.down('KeyW')) dy -= 1;
+    if (g.input.down('ArrowDown')  || g.input.down('KeyS')) dy += 1;
+
+    const len = Math.hypot(dx, dy) || 1; // diagonale normalisieren
+    this.x += (dx/len) * this.speed * dt;
+    this.y += (dy/len) * this.speed * dt;
+
+    const margin = 20;
+    this.x = Math.max(margin, Math.min(g.canvas.width  - this.w - margin, this.x));
+    this.y = Math.max(margin, Math.min(g.canvas.height - this.h - margin, this.y));
     if (this.invuln > 0) this.invuln -= dt;
   }
   render(c) {
