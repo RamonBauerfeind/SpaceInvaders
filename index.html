@@ -1,20 +1,25 @@
 <!doctype html>
+<!-- Root document for the Space Invaders demo; provides canvas and control UI -->
 <html lang="de">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Space Invaders – Minimal</title>
+    <title>Space Invaders - Minimal</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="wrap">
+      <!-- Canvas where the game loop renders every frame -->
       <canvas id="game" width="1024" height="720"></canvas>
+      <!-- Buttons for toggling sound effect and music playback -->
       <div class="toolbar">
         <button id="btn-sfx" title="Soundeffekte umschalten (S)">SFX: an</button>
         <button id="btn-music" title="Musik umschalten (M)">Musik: aus</button>
       </div>
-      <div class="help">Pfeile/WASD: bewegen (alle Richtungen) • Leertaste: schießen • P: Pause • R: Neustart • S: SFX • M: Musik</div>
+      <!-- Quick reference of the keyboard controls -->
+      <div class="help">Pfeile/WASD: bewegen (alle Richtungen)  Leertaste: schießen  P: Pause  R: Neustart  S: SFX  M: Musik</div>
     </div>
+    <!-- Load the ES module that boots the game once the DOM is ready -->
     <script type="module" src="src/main.js"></script>
   </body>
   </html>

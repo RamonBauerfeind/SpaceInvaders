@@ -1,3 +1,7 @@
+/**
+ * Central audio controller that wraps Web Audio for effects and an <audio> element for music.
+ * Persists the user's toggles in localStorage so preferences survive reloads.
+ */
 export class AudioManager {
   constructor() {
     this.enabledSfx = loadBool('sfxEnabled', true);
@@ -11,12 +15,13 @@ export class AudioManager {
     this.music = null; // HTMLAudioElement for compatibility
     this._userInteracted = false;
 
-    // try to wire user gesture to init
+    // Listen for the first pointer/keyboard interaction to unlock autoplay-restricted contexts.
     const unlock = () => { this._userInteracted = true; this._ensureContext(); document.removeEventListener('pointerdown', unlock); document.removeEventListener('keydown', unlock); };
     document.addEventListener('pointerdown', unlock, { once: true });
     document.addEventListener('keydown', unlock, { once: true });
   }
 
+  /** Ensures the Web Audio graph exists so sound can be played. */
   _ensureContext() {
     if (this.ctx) return;
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -31,6 +36,7 @@ export class AudioManager {
     this._applyGains();
   }
 
+  /** Applies persisted volume settings to the gain nodes. */
   _applyGains() {
     if (!this.ctx) return;
     const t = this.ctx.currentTime;
@@ -40,6 +46,7 @@ export class AudioManager {
     this.musicGain.gain.setTargetAtTime(musicVol, t, 0.1);
   }
 
+  /** Toggles sound effects and returns the new enabled state. */
   toggleSfx() {
     this.enabledSfx = !this.enabledSfx;
     saveBool('sfxEnabled', this.enabledSfx);
@@ -48,6 +55,7 @@ export class AudioManager {
     return this.enabledSfx;
   }
 
+  /** Toggles background music playback and returns the new enabled state. */
   toggleMusic() {
     this.enabledMusic = !this.enabledMusic;
     saveBool('musicEnabled', this.enabledMusic);
@@ -58,6 +66,8 @@ export class AudioManager {
   }
 
   // --- SFX ---
+
+  /** Plays the retro-inspired player laser shot. */
   playShoot() {
     if (!this.enabledSfx) return;
     this._ensureContext();
@@ -76,6 +86,7 @@ export class AudioManager {
     o.start(); o.stop(t + 0.15);
   }
 
+  /** Emits a noisy burst for destroyed invaders. */
   playExplosion() {
     if (!this.enabledSfx) return;
     this._ensureContext();
@@ -94,6 +105,7 @@ export class AudioManager {
     noise.start(); noise.stop(t + 0.35);
   }
 
+  /** Subtle hit cue when the player loses a life. */
   playHit() {
     if (!this.enabledSfx) return;
     this._ensureContext();
@@ -111,12 +123,13 @@ export class AudioManager {
     o.start(); o.stop(t + 0.15);
   }
 
+  /** Cheerful arpeggio that plays after collecting a power-up. */
   playPowerUp() {
     if (!this.enabledSfx) return;
     this._ensureContext();
     if (!this.ctx) return;
     const t0 = this.ctx.currentTime;
-    // kleiner aufsteigender Arpeggio-Chime
+    // Short ascending arpeggio to emphasize the reward.
     const seq = [659.25, 880.0, 987.77]; // E5, A5, B5
     seq.forEach((f, i) => {
       const o = this.ctx.createOscillator();
@@ -131,6 +144,7 @@ export class AudioManager {
     });
   }
 
+  /** Quick triad fanfare when a new level begins. */
   playLevelStart() {
     if (!this.enabledSfx) return;
     this._ensureContext();
@@ -151,12 +165,13 @@ export class AudioManager {
     });
   }
 
+  /** Crowd-like celebration when an entire wave has been cleared. */
   playLevelComplete() {
     if (!this.enabledSfx) return;
     this._ensureContext();
     if (!this.ctx) return;
     const t0 = this.ctx.currentTime;
-    // Base crowd noise tail
+    // Base crowd noise tail for ambiance.
     const tail = this._makeNoiseSource(0.9);
     const tailFilter = this.ctx.createBiquadFilter();
     tailFilter.type = 'bandpass';
@@ -168,7 +183,7 @@ export class AudioManager {
     tailGain.gain.exponentialRampToValueAtTime(0.7, t0 + 0.06);
     tailGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.9);
     tail.start(t0); tail.stop(t0 + 0.95);
-    // Discrete claps (short noise bursts)
+    // Discrete claps (short noise bursts).
     const bursts = 22;
     for (let i = 0; i < bursts; i++) {
       const start = t0 + Math.random() * 0.7;
@@ -183,6 +198,7 @@ export class AudioManager {
     }
   }
 
+  /** Convenience helper for generating random noise buffers. */
   _makeNoiseSource(seconds) {
     const len = Math.max(1, Math.floor(seconds * this.ctx.sampleRate));
     const buffer = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
@@ -192,19 +208,22 @@ export class AudioManager {
     src.buffer = buffer; src.loop = false;
     return src;
   }
+
   // --- MUSIC ---
+
+  /** Lazily creates the <audio> element used for looping background music. */
   _ensureMusicElement() {
     if (this.music) return;
     const el = new Audio();
     el.loop = true;
     el.preload = 'auto';
-    // Try multiple common formats; user must provide file(s)
+    // Try multiple common formats; user must provide file(s).
     // Place your file in assets/imperial_march.mp3 or .ogg
     el.src = pickFirstAvailable([
       'assets/imperial_march.mp3',
       'assets/imperial_march.ogg'
     ]);
-    // Route through WebAudio so we can control volume consistently
+    // Route through WebAudio so we can control volume consistently.
     try {
       this._ensureContext();
       if (this.ctx && this.ctx.createMediaElementSource) {
@@ -212,22 +231,24 @@ export class AudioManager {
         src.connect(this.musicGain);
       }
     } catch (e) {
-      // If creating media element source twice throws, ignore
+      // Creating a second MediaElementSource throws; ignore and continue.
     }
     this.music = el;
   }
 
+  /** Attempts to start music playback, respecting autoplay restrictions. */
   async _startMusic() {
     this._ensureMusicElement();
     if (!this.music) return;
     try {
       await this.music.play();
     } catch (err) {
-      // Autoplay-Block oder fehlende Datei
-      console.warn('Musik konnte nicht abgespielt werden. Stelle sicher, dass eine Datei in assets/ vorhanden ist und eine Nutzeraktion erfolgt ist.', err);
+      // Autoplay was blocked or no file is available.
+      console.warn('Music playback failed. Ensure an audio file exists in assets/ and that a user gesture has occurred.', err);
     }
   }
 
+  /** Stops background music playback without destroying the element. */
   _stopMusic() {
     if (this.music) {
       this.music.pause();
@@ -241,4 +262,5 @@ function loadBool(key, def) {
 function saveBool(key, val) {
   try { localStorage.setItem(key, val ? '1' : '0'); } catch {}
 }
+/** Returns the first candidate path. Swap in availability checks if desired. */
 function pickFirstAvailable(list) { return list[0]; }
