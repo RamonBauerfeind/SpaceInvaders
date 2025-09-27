@@ -190,6 +190,23 @@ export class Game {
       }
     }
 
+    // Player ship collisions with invaders
+    for (const inv of this.wave) {
+      if (inv.dead) continue;
+      if (aabb(inv, this.player)) {
+        inv.dead = true;
+        this.explosions.push(new Explosion(inv.x + inv.w/2, inv.y + inv.h/2));
+        this.audio.playExplosion();
+        if (this.player.invuln <= 0) {
+          this.explosions.push(new Explosion(this.player.x + this.player.w/2, this.player.y + this.player.h/2));
+          this.lives -= 1;
+          this.player.invuln = 1.2;
+          this.audio.playHit();
+          if (this.lives <= 0) this.state = 'gameover';
+        }
+      }
+    }
+
     // Remove invaders that reach the bottom and deduct a life
     for (const inv of this.wave) {
       if (!inv.dead && inv.y > this.canvas.height) {
@@ -680,3 +697,4 @@ function loadInt(key, def) {
 function saveInt(key, val) {
   try { localStorage.setItem(key, String(val)); } catch {}
 }
+

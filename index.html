@@ -11,13 +11,24 @@
     <div class="wrap">
       <!-- Canvas where the game loop renders every frame -->
       <canvas id="game" width="1024" height="720"></canvas>
-      <!-- Buttons for toggling sound effect and music playback -->
-      <div class="toolbar">
-        <button id="btn-sfx" title="Soundeffekte umschalten (S)">SFX: an</button>
-        <button id="btn-music" title="Musik umschalten (M)">Musik: aus</button>
+      <!-- Combined control bar with audio toggles and input legend -->
+      <div class="control-bar" aria-label="Spielsteuerung">
+        <div class="toolbar" role="group" aria-label="Audio umschalten">
+          <button id="btn-sfx" title="Soundeffekte umschalten (S)">SFX: an</button>
+          <button id="btn-music" title="Musik umschalten (M)">Musik: aus</button>
+        </div>
+        <div class="legend">
+          <span class="legend-title">Bedienung:</span>
+          <ul>
+            <li><span class="key">Pfeiltasten / WASD</span><span class="action">Bewegen</span></li>
+            <li><span class="key">Leertaste / J</span><span class="action">Schießen</span></li>
+            <li><span class="key">P</span><span class="action">Pause</span></li>
+            <li><span class="key">R</span><span class="action">Neustart</span></li>
+            <li><span class="key">S</span><span class="action">SFX umschalten</span></li>
+            <li><span class="key">M</span><span class="action">Musik umschalten</span></li>
+          </ul>
+        </div>
       </div>
-      <!-- Quick reference of the keyboard controls -->
-      <div class="help">Pfeile/WASD: bewegen (alle Richtungen)  Leertaste: schießen  P: Pause  R: Neustart  S: SFX  M: Musik</div>
     </div>
     <!-- Load the ES module that boots the game once the DOM is ready -->
     <script type="module" src="src/main.js"></script>

@@ -13,7 +13,7 @@ html, body {
   display: grid;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 16px;
   padding: 16px;
 }
 
@@ -27,8 +27,27 @@ html, body {
   box-shadow: 0 0 0 2px #0a0e20, 0 10px 30px rgba(0,0,0,0.35);
 }
 
-/* Buttons sit under the canvas in a compact horizontal bar */
-.toolbar { display: flex; gap: 8px; justify-content: center; }
+/* Shared control bar that houses buttons and legend */
+.control-bar {
+  width: min(1024px, 96vw);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  background: rgba(18, 27, 56, 0.72);
+  border: 1px solid #25356f;
+  border-radius: 10px;
+  padding: 14px 18px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+/* Buttons sit on the left and wrap if needed */
+.toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
 /* Retro-styled control buttons with hover highlight */
 .toolbar button {
@@ -36,11 +55,67 @@ html, body {
   color: #cfd6ff;
   border: 1px solid #25356f;
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 6px 12px;
   cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
 }
 
-.toolbar button:hover { background: #1a2a5e; }
+.toolbar button:hover {
+  background: #1a2a5e;
+  transform: translateY(-1px);
+}
 
-/* Control legend text is smaller and slightly faded */
-.help { opacity: 0.8; font-size: 14px; text-align: center; }
+/* Legend list aligns to the right but wraps under buttons on small screens */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 8px 16px;
+  flex: 1 1 420px;
+  min-width: 260px;
+}
+
+.legend-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.8;
+}
+
+.legend ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}
+
+.legend li {
+  display: flex;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.legend .key {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.legend .action {
+  opacity: 0.8;
+}
+
+@media (max-width: 720px) {
+  .control-bar {
+    justify-content: center;
+    gap: 16px;
+  }
+  .legend {
+    flex: 1 1 100%;
+    justify-content: center;
+  }
+  .legend ul {
+    justify-content: center;
+  }
+}
